@@ -596,7 +596,14 @@
       <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('نظام Iron Dome', 55000000, 0, 0)">شراء</button>
     </div>
   </div>
-       
+        
+        
+        <section class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-bold mb-4">الأصول المملوكة</h2>
+            <div id="ownedAssets" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </section>
+        
+
 <script>
 const firebaseConfig = {
     apiKey: "AIzaSyD2lR-GIwXkmjb2D_kYumcYgXrUIZP6ASo",
@@ -611,44 +618,6 @@ const app = firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const firestore = firebase.firestore();
 const database = firebase.database();
-
-// دالة لتحديث واجهة المستخدم بعرض الرصيد والدخل اليومي والأصول المملوكة
-function updateUI() {
-    const balanceElem = document.getElementById('balance');
-    const dailyIncomeElem = document.getElementById('dailyIncome');
-    const ownedAssetsDiv = document.getElementById('ownedAssets');
-    
-    if (window.userData) {
-        balanceElem.textContent = `رصيدك الحالي: ${Number(window.userData.balance).toLocaleString()} $`;
-        dailyIncomeElem.textContent = `الدخل اليومي المتوقع: ${Number(window.userData.dailyIncome).toLocaleString()} $`;
-        
-        // عرض الأصول المملوكة
-        ownedAssetsDiv.innerHTML = '';
-        if (window.userData.assets) {
-            for (const assetName in window.userData.assets) {
-                ownedAssetsDiv.innerHTML += `<div class="bg-gray-50 p-4 rounded-lg">
-                    <h3 class="font-bold">${assetName.replace(/_/g, ' ')}</h3>
-                    <p class="text-gray-600">الكمية: ${window.userData.assets[assetName]}</p>
-                    <p class="text-green-500">ربح يومي: ${(getAssetProfit(assetName) * window.userData.assets[assetName]).toLocaleString()} $</p>
-                </div>`;
-            }
-        }
-    }
-}
-
-function loadUserData(userId) {
-    const userRef = database.ref('users/' + userId);
-    userRef.on('value', (snapshot) => {
-        const data = snapshot.val() || {
-            balance: 100000000,
-            assets: {},
-            dailyIncome: 0,
-            lastClaimTime: 0
-        };
-        window.userData = data;
-        updateUI(); // تحديث الواجهة بعد تحميل البيانات
-    });
-}
 
 auth.onAuthStateChanged((user) => {
     if (!user) {
@@ -671,28 +640,89 @@ auth.onAuthStateChanged((user) => {
     }
 });
 
+function loadUserData(userId) {
+    const userRef = database.ref('users/' + userId);
+    userRef.on('value', (snapshot) => {
+        const data = snapshot.val() || {
+            balance: 100000000,
+            assets: {},
+            dailyIncome: 0,
+            lastClaimTime: 0
+        };
+        window.userData = data;
+        checkAndUpdateDailyIncome();
+        updateUI();
+    });
+}
+
+function checkAndUpdateDailyIncome() {
+    if (!auth.currentUser) return;
+    const userId = auth.currentUser.uid;
+    const userRef = database.ref('users/' + userId);
+    userRef.once('value').then(snapshot => {
+        const data = snapshot.val() || {
+            balance: 100000000,
+            dailyIncome: 0,
+            lastClaimTime: 0
+        };
+        const now = Date.now();
+        if (now - data.lastClaimTime >= 24 * 60 * 60 * 1000) {
+            const newBalance = data.balance + data.dailyIncome;
+            userRef.update({
+                balance: newBalance,
+                lastClaimTime: now
+            });
+            window.userData.balance = newBalance;
+            window.userData.lastClaimTime = now;
+        }
+        updateUI();
+    });
+}
+
+async function buyAsset(assetName, price, profit) {
+    if (!auth.currentUser) return;
+    const userId = auth.currentUser.uid;
+    const userRef = database.ref('users/' + userId);
+    if ((window.userData.balance || 0) >= price) {
+        const updates = {
+            balance: (window.userData.balance || 0) - price,
+            dailyIncome: (window.userData.dailyIncome || 0) + profit,
+            ['assets/' + assetName]: ((window.userData.assets && window.userData.assets[assetName]) || 0) + 1
+        };
+        await userRef.update(updates);
+    } else {
+        alert('رصيدك غير كافي لشراء هذا الأصل!');
+    }
+}
+
+function updateUI() {
+    const balance = (window.userData && window.userData.balance) || 0;
+    const dailyIncome = (window.userData && window.userData.dailyIncome) || 0;
+    document.getElementById('balance').textContent = `رصيدك الحالي: ${balance.toLocaleString()} $`;
+    document.getElementById('dailyIncome').textContent = `الدخل اليومي المتوقع: ${dailyIncome.toLocaleString()} $`;
+    const ownedAssetsDiv = document.getElementById('ownedAssets');
+    ownedAssetsDiv.innerHTML = '';
+    if (window.userData && window.userData.assets) {
+        for (const [assetName, count] of Object.entries(window.userData.assets)) {
+            const assetProfit = getAssetProfit(assetName);
+            ownedAssetsDiv.innerHTML += `
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="font-bold">${assetName.replace('_', ' ')}</h3>
+                    <p class="text-gray-600">الكمية: ${count}</p>
+                    <p class="text-green-500">ربح يومي: ${(assetProfit * count).toLocaleString()} $</p>
+                </div>
+            `;
+        }
+    }
+}
+
 function getAssetProfit(assetName) {
     const assets = {
         'منجم_ذهب': 9000000,
-        'منجم_فضة': 4500000,
-        'بئر_نفط': 12000000,
-        'حقل_غاز_طبيعي': 10000000,
-        'منجم_فوسفاط': 6000000,
-        'مزرعة_القمح': 2800000,
-        'محطة_طاقة_شمسية': 7000000,
-        'مصنع_إلكترونيات': 70000000,
-        'مصنع_بطاريات_ليثيوم': 22000000,
-        'محطة_طاقة_رياح': 40000000,
-        'منجم_الماس': 13500000,
-        'منجم_حديد': 3800000,
-        'مصايد_الاسماك': 5300000,
-        'مزرعة_الارز': 2300000,
-        'محطة_كهرومائية': 32000000,
-        'محطة_نووية': 140000000
+        'بئر_نفط': 12000000
     };
     return assets[assetName] || 0;
 }
-    
- </script>
+</script>
 </body>
 </html>
