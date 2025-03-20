@@ -25,33 +25,78 @@
             cursor: pointer;
         }
     </style>
-</head>
+
 <body class="bg-gray-100">
-    <button class="ai-button" onclick="location.href='ai.html'">AI</button>
-    <body class="bg-gray-100">
-    <button class="forum-button" onclick="location.href='pub.html'">منتدى الأمم</button>
+  <!-- زر AI على اليسار بلون أزرق -->
+  <button class="ai-button" onclick="location.href='ai.html'">AI</button>
+  
+  <!-- زر منتدى أمم في المنتصف بلون أزرق -->
+  <button class="forum-button" onclick="location.href='forum.html'">منتدى أمم</button>
+  
+  <!-- زر مهام أمم على اليمين بلون أحمر -->
+  <button class="tasks-button" onclick="location.href='tasks.html'">مهام أمم</button>
 
-    <style>
-        .forum-button {
-            position: fixed;
-            top: 5px;
-            right: 130px; /* محاذاة الزر إلى الجهة اليمنى */
-            padding: 3px 25px; /* تكبير الزر */
-            font-size: 18px;
-            background-color: #3B82F6;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
+  <!-- صيغة زر AI -->
+  <style>
+    .ai-button {
+      position: fixed;
+      top: 5px;
+      left: 10px;
+      background-color: #3B82F6; /* أزرق */
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 3px 25px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .ai-button:hover {
+      background-color: #0056b3;
+    }
+  </style>
 
-        .forum-button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+  <!-- صيغة زر منتدى أمم -->
+  <style>
+    .forum-button {
+      position: fixed;
+      top: 5px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #3B82F6; /* أزرق */
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 1px 5px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .forum-button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+
+  <!-- صيغة زر مهام أمم -->
+  <style>
+    .tasks-button {
+      position: fixed;
+      top: 5px;
+      right: 10px;
+      background-color: #FF0000; /* أحمر */
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 1px 5px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .tasks-button:hover {
+      background-color: #cc0000;
+    }
+  </style>
 </body>
-
     <div class="container mx-auto px-4 py-8">
         <header class="text-center mb-8">
             <h1 class="text-3xl font-bold text-blue-800 mb-2">🇺🇳 لعبة محاكاة الأمم المتحدة 🇺🇳</h1>
