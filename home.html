@@ -170,10 +170,6 @@
             </div>
         </section>
 
-        <section class="mb-8">
-  <h2 class="text-2xl font-bold mb-6 text-center">القطاع الثاني: الجيش</h2>
-<div class="bg-white p-6 rounded-lg shadow-md">
-  
   <!-- ✿ دبابات -->
   <h3 class="text-xl font-bold mb-4">✿ دبابات</h3>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -606,124 +602,137 @@
         
 
 <script>
-const firebaseConfig = {
+  // تعريف إعدادات Firebase
+  const firebaseConfig = {
     apiKey: "AIzaSyD2lR-GIwXkmjb2D_kYumcYgXrUIZP6ASo",
     authDomain: "professor-school-website.firebaseapp.com",
     projectId: "professor-school-website",
-    storageBucket: "professor-school-website.firestorage.app",
+    storageBucket: "professor-school-website.appspot.com",
     messagingSenderId: "302841421596",
     appId: "1:302841421596:web:1de713be7515ea22a3a4d9"
-};
+  };
 
-const app = firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const firestore = firebase.firestore();
-const database = firebase.database();
+  // تعريف مفتاح reCAPTCHA (Site Key)
+  const recaptchaSiteKey = "6LcqbfkqAAAAAEs1jWtOqpjxnORlPJ1KPg0gCD7T";
 
-auth.onAuthStateChanged((user) => {
-    if (!user) {
-        window.location.href = 'index.html';
-    } else {
-        firestore.collection('users').doc(user.uid).get().then((doc) => {
-            if (doc.exists) {
-                const data = doc.data();
-                const headName = data.headName;
-                const country = data.country;
-                const userInfoElement = document.getElementById('userInfo');
-                userInfoElement.innerHTML = `
-                    <p>مرحبا سيدي ${headName}</p>
-                    <p>انت رئيس ${country}</p>
-                    <p>ايميلك ${user.email}</p>
-                `;
-            }
-        });
-        loadUserData(user.uid);
-    }
-});
+  const app = firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const firestore = firebase.firestore();
+  const database = firebase.database();
 
-function loadUserData(userId) {
-    const userRef = database.ref('users/' + userId);
-    userRef.on('value', (snapshot) => {
-        const data = snapshot.val() || {
-            balance: 100000000,
-            assets: {},
-            dailyIncome: 0,
-            lastClaimTime: 0
-        };
-        window.userData = data;
-        checkAndUpdateDailyIncome();
-        updateUI();
-    });
-}
+  auth.onAuthStateChanged((user) => {
+      if (!user) {
+          window.location.href = 'index.html';
+      } else {
+          firestore.collection('users').doc(user.uid).get().then((doc) => {
+              if (doc.exists) {
+                  const data = doc.data();
+                  const headName = data.headName;
+                  const country = data.country;
+                  const userInfoElement = document.getElementById('userInfo');
+                  userInfoElement.innerHTML = `
+                      <p>مرحبا سيدي ${headName}</p>
+                      <p>انت رئيس ${country}</p>
+                      <p>ايميلك ${user.email}</p>
+                  `;
+              }
+          });
+          loadUserData(user.uid);
+      }
+  });
 
-function checkAndUpdateDailyIncome() {
+  function loadUserData(userId) {
+      const userRef = database.ref('users/' + userId);
+      userRef.on('value', (snapshot) => {
+          const data = snapshot.val() || {
+              balance: 100000000,
+              assets: {},
+              dailyIncome: 0,
+              lastClaimTime: 0
+          };
+          window.userData = data;
+          checkAndUpdateDailyIncome();
+          updateUI();
+      });
+  }
+
+  function checkAndUpdateDailyIncome() {
     if (!auth.currentUser) return;
     const userId = auth.currentUser.uid;
     const userRef = database.ref('users/' + userId);
+
     userRef.once('value').then(snapshot => {
         const data = snapshot.val() || {
             balance: 100000000,
             dailyIncome: 0,
-            lastClaimTime: 0
+            lastClaimDate: "1970-01-01"
         };
-        const now = Date.now();
-        if (now - data.lastClaimTime >= 24 * 60 * 60 * 1000) {
-            const newBalance = data.balance + data.dailyIncome;
+
+        const now = new Date();
+        const nowDateStr = now.toISOString().split('T')[0]; // التاريخ الحالي بصيغة YYYY-MM-DD
+        const lastClaimDate = data.lastClaimDate || "1970-01-01";
+
+        now.setHours(13, 0, 0, 0); // تحديد الساعة 13:00 بتوقيت النظام
+
+        if (nowDateStr > lastClaimDate && Date.now() >= now.getTime()) {
+            const newBalance = (data.balance || 0) + (data.dailyIncome || 0);
             userRef.update({
                 balance: newBalance,
-                lastClaimTime: now
+                lastClaimDate: nowDateStr
+            }).then(() => {
+                console.log("تمت إضافة الدخل اليومي بنجاح!");
+                window.userData.balance = newBalance;
+                window.userData.lastClaimDate = nowDateStr;
+                updateUI();
             });
-            window.userData.balance = newBalance;
-            window.userData.lastClaimTime = now;
         }
-        updateUI();
     });
 }
 
-async function buyAsset(assetName, price, profit) {
-    if (!auth.currentUser) return;
-    const userId = auth.currentUser.uid;
-    const userRef = database.ref('users/' + userId);
-    if ((window.userData.balance || 0) >= price) {
-        const updates = {
-            balance: (window.userData.balance || 0) - price,
-            dailyIncome: (window.userData.dailyIncome || 0) + profit,
-            ['assets/' + assetName]: ((window.userData.assets && window.userData.assets[assetName]) || 0) + 1
-        };
-        await userRef.update(updates);
-    } else {
-        alert('رصيدك غير كافي لشراء هذا الأصل!');
-    }
-}
+  async function buyAsset(assetName, price, profit) {
+      if (!auth.currentUser) return;
+      const userId = auth.currentUser.uid;
+      const userRef = database.ref('users/' + userId);
+      if ((window.userData.balance || 0) >= price) {
+          const updates = {
+              balance: (window.userData.balance || 0) - price,
+              dailyIncome: (window.userData.dailyIncome || 0) + profit,
+              ['assets/' + assetName]: ((window.userData.assets && window.userData.assets[assetName]) || 0) + 1
+          };
+          await userRef.update(updates);
+      } else {
+          alert('رصيدك غير كافي لشراء هذا الأصل!');
+      }
+  }
 
-function updateUI() {
-    const balance = (window.userData && window.userData.balance) || 0;
-    const dailyIncome = (window.userData && window.userData.dailyIncome) || 0;
-    document.getElementById('balance').textContent = `رصيدك الحالي: ${balance.toLocaleString()} $`;
-    document.getElementById('dailyIncome').textContent = `الدخل اليومي المتوقع: ${dailyIncome.toLocaleString()} $`;
-    const ownedAssetsDiv = document.getElementById('ownedAssets');
-    ownedAssetsDiv.innerHTML = '';
-    if (window.userData && window.userData.assets) {
-        for (const [assetName, count] of Object.entries(window.userData.assets)) {
-            const assetProfit = getAssetProfit(assetName);
-            ownedAssetsDiv.innerHTML += `
-                <div class="bg-gray-50 p-4 rounded-lg">
-                    <h3 class="font-bold">${assetName.replace('_', ' ')}</h3>
-                    <p class="text-gray-600">الكمية: ${count}</p>
-                    <p class="text-green-500">ربح يومي: ${(assetProfit * count).toLocaleString()} $</p>
-                </div>
-            `;
-        }
-    }
-}
+  function updateUI() {
+      const balance = (window.userData && window.userData.balance) || 0;
+      const dailyIncome = (window.userData && window.userData.dailyIncome) || 0;
+      document.getElementById('balance').textContent = `رصيدك الحالي: ${balance.toLocaleString()} $`;
+      document.getElementById('dailyIncome').textContent = `الدخل اليومي المتوقع: ${dailyIncome.toLocaleString()} $`;
+      const ownedAssetsDiv = document.getElementById('ownedAssets');
+      ownedAssetsDiv.innerHTML = '';
+      if (window.userData && window.userData.assets) {
+          for (const [assetName, count] of Object.entries(window.userData.assets)) {
+              const assetProfit = getAssetProfit(assetName);
+              ownedAssetsDiv.innerHTML += `
+                  <div class="bg-gray-50 p-4 rounded-lg">
+                      <h3 class="font-bold">${assetName.replace('_', ' ')}</h3>
+                      <p class="text-gray-600">الكمية: ${count}</p>
+                      <p class="text-green-500">ربح يومي: ${(assetProfit * count).toLocaleString()} $</p>
+                  </div>
+              `;
+          }
+      }
+  }
 
-function getAssetProfit(assetName) {
-    const assets = {
-        'منجم_ذهب': 9000000,
-        'بئر_نفط': 12000000
-    };
-    return assets[assetName] || 0;
-}
+  function getAssetProfit(assetName) {
+      const assets = {
+          'منجم_ذهب': 9000000,
+          'بئر_نفط': 12000000
+      };
+      return assets[assetName] || 0;
+  }
 </script>
 </body>
-</html>
+          </html>
