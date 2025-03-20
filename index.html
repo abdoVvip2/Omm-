@@ -1,406 +1,783 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>تسجيل دخول للامم متحدة</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"/>
-  <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة الأمم المتحدة - محاكاة الدولة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap');
+        body {font-family: 'Noto Sans Arabic', sans-serif;}
+        .ai-button {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background-color: #3B82F6;
+            color: #fff;
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+
+<body class="bg-gray-100">
+  <!-- زر AI على اليسار بلون أزرق -->
+  <button class="ai-button" onclick="location.href='ai.html'">AI</button>
+  
+  <!-- زر منتدى أمم في المنتصف بلون أزرق -->
+  <button class="forum-button" onclick="location.href='forum.html'">منتدى أمم</button>
+  
+  <!-- زر مهام أمم على اليمين بلون أحمر -->
+  <button class="tasks-button" onclick="location.href='tasks.html'">مهام أمم</button>
+
+  <!-- صيغة زر AI -->
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background: #e0f7ff;
-      font-family: Arial, sans-serif;
-      overflow-x: hidden;
-      position: relative;
-      min-height: 100vh;
-    }
-    .background {
+    .ai-button {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: url('https://upload.wikimedia.org/wikipedia/commons/e/e9/United_Nations_Headquarters.jpg') center center / cover no-repeat;
-      z-index: -4;
-      animation: bgMove 30s linear infinite;
-      opacity: 0.5;
-    }
-    @keyframes bgMove {
-      from { transform: scale(1) translateY(0); }
-      to { transform: scale(1.05) translateY(-20px); }
-    }
-    .overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(224, 247, 255, 0.3);
-      z-index: -3;
-    }
-    #particles-js {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -2;
-    }
-    .container {
-      background: #ffffff;
-      border: 1px solid #ADD8E6;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      padding: 20px;
-      width: 320px;
-      margin: 40px auto;
-      color: #333;
-    }
-    h2 {
-      text-align: center;
-      color: #333;
-    }
-    input, select, button {
-      font-size: 14px;
-    }
-    input, select {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #ADD8E6;
-      border-radius: 4px;
-      color: #333;
-    }
-    button {
-      background-color: #004866;
-      color: #fff;
+      top: 5px;
+      left: 10px;
+      background-color: #3B82F6; /* أزرق */
+      color: white;
       border: none;
-      padding: 10px;
-      width: 100%;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    button:hover {
-      background-color: #003652;
-    }
-    .toggle-link {
-      text-align: center;
-      margin-top: 10px;
-      font-size: 14px;
-      cursor: pointer;
-      color: #333;
-    }
-    .error {
-      color: red;
-      text-align: center;
-      font-size: 14px;
-    }
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.75);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 10;
-    }
-    .modal-content {
-      background: #fff;
       border-radius: 8px;
-      padding: 20px;
-      width: 90%;
-      max-width: 600px;
-      max-height: 80vh;
-      overflow-y: auto;
-      color: #333;
-    }
-    .modal .close-btn {
-      text-align: right;
-      font-size: 20px;
+      padding: 3px 25px;
+      font-size: 18px;
       cursor: pointer;
-      color: #333;
+      transition: background 0.3s;
     }
-    .search-bar {
-      display: flex;
-      align-items: center;
-      margin: 10px 0;
-      border: 1px solid #ADD8E6;
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    .search-bar input {
-      flex: 1;
-      border: none;
-      padding: 8px;
-      outline: none;
-      font-size: 14px;
-    }
-    .search-bar i {
-      padding: 8px;
-      background: #ADD8E6;
-      color: #fff;
-    }
-    .flag-grid {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 10px;
-    }
-    @media (max-width: 600px) {
-      .flag-grid {
-        grid-template-columns: repeat(3, 1fr);
-      }
-    }
-    .flag-item {
-      text-align: center;
-      cursor: pointer;
-      transition: transform 0.3s;
-    }
-    .flag-item:hover {
-      transform: translateY(-3px);
-    }
-    .flag-item .country-name {
-      font-size: 12px;
-      margin-top: 5px;
-      color: #333;
-    }
-    #modalError {
-      color: red;
-      text-align: center;
-      margin-bottom: 10px;
+    .ai-button:hover {
+      background-color: #0056b3;
     }
   </style>
-</head>
-<body>
-  <div class="background"></div>
-  <div class="overlay"></div>
-  <div id="particles-js"></div>
-  <div id="signup-container" class="container">
-    <h2>إنشاء حساب</h2>
-    <button id="openCountryModal" style="background:#fff;color:#333;border:1px solid #ADD8E6;" onclick="openModal()">
-      اختر دولتك <i class="flag-icon flag-icon-us" id="selectedFlag" style="margin-right:5px;"></i>
-      <span id="selectedCountryText">لم يتم الاختيار</span>
+
+  <!-- صيغة زر منتدى أمم -->
+  <style>
+    .forum-button {
+      position: fixed;
+      top: 5px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #3B82F6; /* أزرق */
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 1px 5px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .forum-button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+
+  <!-- صيغة زر مهام أمم -->
+  <style>
+    .tasks-button {
+      position: fixed;
+      top: 5px;
+      right: 10px;
+      background-color: #FF0000; /* أحمر */
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 1px 5px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .tasks-button:hover {
+      background-color: #cc0000;
+    }
+  </style>
+</body>
+    <div class="container mx-auto px-4 py-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-blue-800 mb-2">🇺🇳 لعبة محاكاة الأمم المتحدة 🇺🇳</h1>
+            <div class="bg-white p-4 rounded-lg shadow-md">
+                <p id="balance" class="text-2xl font-bold text-green-600">رصيدك الحالي: 100,000,000 $</p>
+                <p id="dailyIncome" class="text-gray-600 mt-2">الدخل اليومي المتوقع: 0 $</p>
+                <p id="userInfo" class="text-gray-600 mt-2"></p>
+            </div>
+        </header>
+        
+        <section class="mb-8">
+            <h2 class="text-2xl font-bold mb-6 text-center">القطاع الأول: الاقتصاد أو مصادر الدخل</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- 1. منجم ذهب -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <img src="p/gold.png"
+                         alt="منجم ذهب" class="w-full h-32 object-cover rounded mb-2">
+                    <h3 class="text-xl font-bold mb-2">منجم ذهب 🏭</h3>
+                    <p class="text-gray-600 mb-2">السعر: 15,000,000$</p>
+                    <p class="text-green-500 mb-4">الربح اليومي: 9,000,000$</p>
+                    <button class="bg-blue-500 text-white px-4 py-2 rounded-lg w-full hover:bg-blue-600"
+                            onclick="buyAsset('منجم_ذهب', 15000000, 9000000)">
+                        شراء
+                    </button>
+                </div>
+                
+                <!-- 11. منجم الماس -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <img src="p/dai.png"
+                         alt="منجم الماس" class="w-full h-32 object-cover rounded mb-2">
+                    <h3 class="text-xl font-bold mb-2">منجم الماس</h3>
+                    <p class="text-gray-600 mb-2">السعر: 22,000,000$</p>
+                    <p class="text-green-500 mb-4">الربح اليومي: 13,500,000$</p>
+                    <button class="bg-blue-500 text-white px-4 py-2 rounded-lg w-full hover:bg-blue-600"
+                            onclick="buyAsset('منجم_الماس', 22000000, 13500000)">
+                        شراء
+                    </button>
+                </div>
+
+                <!-- 12. منجم حديد -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWoLL90JAFJLfjAX4BYmd_gNUh5ZlRCv1YpA&usqp=CAU"
+                         alt="منجم حديد" class="w-full h-32 object-cover rounded mb-2">
+                    <h3 class="text-xl font-bold mb-2">منجم حديد</h3>
+                    <p class="text-gray-600 mb-2">السعر: 5,500,000$</p>
+                    <p class="text-green-500 mb-4">الربح اليومي: 3,800,000$</p>
+                    <button class="bg-blue-500 text-white px-4 py-2 rounded-lg w-full hover:bg-blue-600"
+                            onclick="buyAsset('منجم_حديد', 5500000, 3800000)">
+                        شراء
+                    </button>
+                </div>
+
+                <!-- 13. مصايد الأسماك -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3e__tUliPUHL8HpQ8NEMDe6NveLeqJ0Dc6A&usqp=CAU"
+                         alt="مصايد الأسماك" class="w-full h-32 object-cover rounded mb-2">
+                    <h3 class="text-xl font-bold mb-2">مصايد الأسماك</h3>
+                    <p class="text-gray-600 mb-2">السعر: 8,000,000$</p>
+                    <p class="text-green-500 mb-4">الربح اليومي: 5,300,000$</p>
+                    <button class="bg-blue-500 text-white px-4 py-2 rounded-lg w-full hover:bg-blue-600"
+                            onclick="buyAsset('مصايد_الأسماك', 8000000, 5300000)">
+                        شراء
+                    </button>
+                </div>
+
+                <!-- 14. مزرعة الأرز -->
+                
+<div class="bg-white p-6 rounded-lg shadow-md">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR5yEWtIzF8vInN4dtcVycEw79mmRZGu67NRA&usqp=CAU"
+                         alt="مزرعة الأرز" class="w-full h-32 object-cover rounded mb-2">
+                    <h3 class="text-xl font-bold mb-2">مزرعة الأرز</h3>
+                    <p class="text-gray-600 mb-2">السعر: 3,500,000$</p>
+                    <p class="text-green-500 mb-4">الربح اليومي: 2,300,000$</p>
+                    <button class="bg-blue-500 text-white px-4 py-2 rounded-lg w-full hover:bg-blue-600"
+                            onclick="buyAsset('مزرعة_الأرز', 3500000, 2300000)">
+                        شراء
+                    </button>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+    <img src="..." alt="مصنع بطاريات ليثيوم" class="w-full h-32 object-cover rounded mb-2">
+    <h3 class="text-xl font-bold mb-2">مصنع بطاريات ليثيوم</h3>
+    <p class="text-gray-600 mb-2">السعر: 30,000,000$</p>
+    <p class="text-green-500 mb-4">الربح اليومي: 22,000,000$</p>
+    <button class="bg-blue-500 text-white px-4 py-2 rounded-lg w-full hover:bg-blue-600"
+            onclick="buyAsset('مصنع_بطاريات_ليثيوم', 30000000, 22000000)">
+        شراء
     </button>
-    <input type="email" id="signupEmail" placeholder="البريد الإلكتروني" required>
-    <input type="text" id="headName" placeholder="اسم الرئيس" required>
-    <input type="password" id="signupPassword" placeholder="كلمة المرور" required>
-    <button onclick="signUp()">إنشاء الحساب</button>
-    <div class="error" id="signupError"></div>
-    <div class="toggle-link" onclick="showLogin()">لديك حساب؟ تسجيل الدخول</div>
-  </div>
-  <div id="login-container" class="container" style="display:none;">
-    <h2>تسجيل الدخول</h2>
-    <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" required>
-    <input type="password" id="loginPassword" placeholder="كلمة المرور" required>
-    <button onclick="signIn()">الدخول</button>
-    <div class="error" id="loginError"></div>
-    <div class="toggle-link" onclick="showSignUp()">إنشاء حساب جديد</div>
-  </div>
-  <div id="countryModal" class="modal">
-    <div class="modal-content">
-      <div class="close-btn" onclick="closeModal()">✖</div>
-      <div id="modalError"></div>
-      <div class="search-bar">
-        <i class="fa fa-search"></i>
-        <input type="text" id="searchInput" placeholder="ابحث عن دولتك" onkeyup="filterCountries()">
-      </div>
-      <div class="flag-grid" id="flagGrid"></div>
+</div>
+
+
+                <!-- 15. محطة كهرومائية -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTx-vgOGNqxiI7VT3kIXkddOJ3Le8u92zTUeQ&usqp=CAU"
+                         alt="محطة كهرومائية" class="w-full h-32 object-cover rounded mb-2">
+                    <h3 class="text-xl font-bold mb-2">محطة كهرومائية</h3>
+                    <p class="text-gray-600 mb-2">السعر: 40,000,000$</p>
+                    <p class="text-green-500 mb-4">الربح اليومي: 32,000,000$</p>
+                    <button class="bg-blue-500 text-white px-4 py-2 rounded-lg w-full hover:bg-blue-600"
+                            onclick="buyAsset('محطة_كهرومائية', 40000000, 32000000)">
+                        شراء
+                    </button>
+                </div>
+                <!-- 16. محطة نووية -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRGjSC9soGlqSWt7RTevI3gvvP5KqCFwk-nbw&usqp=CAU"
+                         alt="محطة نووية" class="w-full h-32 object-cover rounded mb-2">
+                    <h3 class="text-xl font-bold mb-2">محطة نووية</h3>
+                    <p class="text-gray-600 mb-2">السعر: 200,000,000$</p>
+                    <p class="text-green-500 mb-4">الربح اليومي: 140,000,000$</p>
+                    <button class="bg-blue-500 text-white px-4 py-2 rounded-lg w-full hover:bg-blue-600"
+                            onclick="buyAsset('محطة_نووية', 200000000, 140000000)">
+                        شراء
+                    </button>
+                </div>
+            </div>
+        </section>
+
+  <!-- ✿ دبابات -->
+  <h3 class="text-xl font-bold mb-4">✿ دبابات</h3>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <!-- 1. دبابة T-14 Armata -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="p/t14.png" alt="دبابة T-14 Armata" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">دبابة T-14 Armata</h4>
+      <p class="text-gray-600 mb-1">السعر: 20,000,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 1000</p>
+      <p class="text-gray-600 mb-1">السرعة: 80 كم/ساعة</p>
+      <p class="text-green-500 mb-4">الميزة: سرعة عالية مع برج غير ماهول وقدرة تحديد هدف حرارية</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('T-14 Armata', 20000000, 1000, 80)">شراء</button>
+    </div>
+
+    <!-- 2. دبابة M1 Abrams -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="p/m1.png" alt="دبابة M1 Abrams" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">دبابة M1 Abrams</h4>
+      <p class="text-gray-600 mb-1">السعر: 18,500,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 900</p>
+      <p class="text-gray-600 mb-1">السرعة: 67 كم/ساعة</p>
+      <p class="text-green-500 mb-4">الميزة: تدريع عالي وتنقل سريع مع محرك توربيني ونظام تحكم حراري</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('M1 Abrams', 18500000, 900, 67)">شراء</button>
+    </div>
+
+    <!-- 3. دبابة Leopard 2A7 -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTM4tSl3K4xUf2qilI9b9zOPI8soN7yYxY5ag&usqp=CAU" alt="دبابة Leopard 2A7" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">دبابة Leopard 2A7</h4>
+      <p class="text-gray-600 mb-1">السعر: 16,200,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 750</p>
+      <p class="text-gray-600 mb-1">السرعة: 68 كم/ساعة</p>
+      <p class="text-green-500 mb-4">الميزة: توازي بين التدريع والأنظمة التكنولوجية وقوة المحرك</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('Leopard 2A7', 16200000, 750, 68)">شراء</button>
+    </div>
+
+    <!-- 4. دبابة Challenger 2 -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0M5wZ6ETLq1rljZWslIu8Cyf8CZcOP5P3pQ&usqp=CAU" alt="دبابة Challenger 2" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">دبابة Challenger 2</h4>
+      <p class="text-gray-600 mb-1">السعر: 14,500,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 710</p>
+      <p class="text-gray-600 mb-1">السرعة: 59 كم/ساعة</p>
+      <p class="text-green-500 mb-4">الميزة: معدل تدمير عالي بفضل قوة المدفع وحماية طاقم ممتازة</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('Challenger 2', 14500000, 710, 59)">شراء</button>
+    </div>
+
+    <!-- 5. دبابة K2 Black Panther -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJxgP7XAb5g_6N6Wqm9C7QerYzq8LIMxnl4w&usqp=CAU" alt="دبابة K2 Black Panther" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">دبابة K2 Black Panther</h4>
+      <p class="text-gray-600 mb-1">السعر: 16,500,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 840</p>
+      <p class="text-gray-600 mb-1">السرعة: 70 كم/ساعة</p>
+      <p class="text-green-500 mb-4">الميزة: أقوى نظام حماية نشطة</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('K2 Black Panther', 16500000, 840, 70)">شراء</button>
+    </div>
+
+    <!-- 6. دبابة M1A2 SEB v4 -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrGxmxiVKCZDbkUjHrgIl9rxxz4-lQ0QDU1g&usqp=CAU" alt="دبابة M1A2 SEB v4" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">دبابة M1A2 SEB v4</h4>
+      <p class="text-gray-600 mb-1">السعر: 17,000,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 850</p>
+      <p class="text-gray-600 mb-1">السرعة: 67 كم/ساعة</p>
+      <p class="text-green-500 mb-4">الميزة: دبابة متوازنة مع قدرة تحديد هدف فريدة</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('M1A2 SEB v4', 17000000, 850, 67)">شراء</button>
+    </div>
+
+    <!-- 7. دبابة Merkava IV Barak -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1TeI5yQ3ITZfN0oWKnL7lpoJgW7zVdJ0_BQ&usqp=CAU" alt="دبابة Merkava IV Barak" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">دبابة Merkava IV Barak</h4>
+      <p class="text-gray-600 mb-1">السعر: 14,600,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 690</p>
+      <p class="text-gray-600 mb-1">السرعة: 64 كم/ساعة</p>
+      <p class="text-green-500 mb-4">الميزة: دفاع قوي وقدرة على تصدي الهجمات</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('Merkava IV Barak', 14600000, 690, 64)">شراء</button>
+    </div>
+
+    <!-- 8. دبابة Leclerc -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzVqyvzXKJb0oOQ0FB4yZrK7xYc0zH3ax2Qw&usqp=CAU" alt="دبابة Leclerc" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">دبابة Leclerc</h4>
+      <p class="text-gray-600 mb-1">السعر: 12,000,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 610</p>
+      <p class="text-gray-600 mb-1">السرعة: 72 كم/ساعة</p>
+      <p class="text-green-500 mb-4">الميزة: سرعة عالية وبرج سريع الاستهداف</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('Leclerc', 12000000, 610, 72)">شراء</button>
+    </div>
+
+    <!-- 9. دبابة Type 99 -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0BB6IEiWZd7pzWQe6UwruN3j7hSy-XFZ7uQ&usqp=CAU" alt="دبابة Type 99" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">دبابة Type 99</h4>
+      <p class="text-gray-600 mb-1">السعر: 11,000,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 600</p>
+      <p class="text-gray-600 mb-1">السرعة: 80 كم/ساعة</p>
+      <p class="text-green-500 mb-4">الميزة: سرعة خارقة</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('Type 99', 11000000, 600, 80)">شراء</button>
     </div>
   </div>
-  <script>
-    // Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyD2lR-GIwXkmjb2D_kYumcYgXrUIZP6ASo",
-      authDomain: "professor-school-website.firebaseapp.com",
-      projectId: "professor-school-website",
-      storageBucket: "professor-school-website.firebasestorage.app",
-      messagingSenderId: "302841421596",
-      appId: "1:302841421596:web:1de713be7515ea22a3a4d9"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
 
-    // Particle background setup
-    particlesJS('particles-js',{
-      "particles":{
-        "number":{"value":80,"density":{"enable":true,"value_area":800}},
-        "color":{"value":"#ffffff"},
-        "shape":{"type":"circle"},
-        "opacity":{"value":0.5},
-        "size":{"value":3,"random":true},
-        "line_linked":{"enable":true,"distance":150,"color":"#ffffff","opacity":0.4,"width":1},
-        "move":{"enable":true,"speed":4,"direction":"none","random":false,"straight":false,"out_mode":"out"}
-      },
-      "interactivity":{
-        "detect_on":"canvas",
-        "events":{"onhover":{"enable":true,"mode":"grab"},"onclick":{"enable":true,"mode":"push"}},
-        "modes":{"grab":{"distance":140,"line_linked":{"opacity":1}},"push":{"particles_nb":4}}
-      },
-      "retina_detect":true
-    });
+  <!-- ✿ طائرات -->
+  <h3 class="text-xl font-bold mt-8 mb-4">✿ طائرات</h3>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <!-- 1. F-15EX Eagle II -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQF15qE1aX60FOTNVXQ_j-4sn_YsYmMB5dSUA&usqp=CAU" alt="F-15EX Eagle II" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">F-15EX Eagle II</h4>
+      <p class="text-gray-600 mb-1">السعر: 120,000,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 2800</p>
+      <p class="text-gray-600 mb-1">السرعة: 2.5 ماخ</p>
+      <p class="text-green-500 mb-4">الميزة: سجل قتالي عظيم وتوازن مثالي</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('F-15EX Eagle II', 120000000, 2800, 2.5)">شراء</button>
+    </div>
 
-    // Automatically show login container if account exists (using localStorage flag)
-    window.onload = function() {
-      if(localStorage.getItem("hasAccount") === "true") {
-        document.getElementById("signup-container").style.display = "none";
-        document.getElementById("login-container").style.display = "block";
-      }
-    };
+    <!-- 2. F-35 Lightning II -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJ8zC3vSxNE7rh59qz5I2K5KZpWj4M6V-4tw&usqp=CAU" alt="F-35 Lightning II" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">F-35 Lightning II</h4>
+      <p class="text-gray-600 mb-1">السعر: 270,000,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 4900</p>
+      <p class="text-gray-600 mb-1">السرعة: 1.9 ماخ</p>
+      <p class="text-green-500 mb-4">الميزة: قوة هائلة لحرب إلكترونية</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('F-35 Lightning II', 270000000, 4900, 1.9)">شراء</button>
+    </div>
 
-    // Country list for modal
-    const countries = [
-      {code:"AF",name:"أفغانستان"},{code:"AL",name:"ألبانيا"},{code:"DZ",name:"الجزائر"},{code:"AD",name:"أندورا"},{code:"AO",name:"أنغولا"},
-      {code:"AR",name:"الأرجنتين"},{code:"AM",name:"أرمينيا"},{code:"AU",name:"أستراليا"},{code:"AT",name:"النمسا"},{code:"AZ",name:"أذربيجان"},
-      {code:"BH",name:"البحرين"},{code:"BD",name:"بنغلاديش"},{code:"BY",name:"بيلاروس"},{code:"BE",name:"بلجيكا"},{code:"BZ",name:"بليز"},
-      {code:"BJ",name:"بنين"},{code:"BT",name:"بوتان"},{code:"BO",name:"بوليفيا"},{code:"BA",name:"البوسنة والهرسك"},{code:"BW",name:"بوتسوانا"},
-      {code:"BR",name:"البرازيل"},{code:"BN",name:"بروناي"},{code:"BG",name:"بلغاريا"},{code:"BF",name:"بوركينا فاسو"},{code:"BI",name:"بوروندي"},
-      {code:"KH",name:"كمبوديا"},{code:"CM",name:"الكاميرون"},{code:"CA",name:"كندا"},{code:"CF",name:"جمهورية أفريقيا الوسطى"},{code:"TD",name:"تشاد"},
-      {code:"CL",name:"تشيلي"},{code:"CN",name:"الصين"},{code:"CO",name:"كولومبيا"},{code:"CR",name:"كوستاريكا"},{code:"CI",name:"ساحل العاج"},
-      {code:"HR",name:"كرواتيا"},{code:"CU",name:"كوبا"},{code:"CY",name:"قبرص"},{code:"CZ",name:"التشيك"},{code:"DK",name:"الدنمارك"},
-      {code:"DO",name:"جمهورية الدومينيكان"},{code:"EC",name:"الإكوادور"},{code:"EG",name:"مصر"},{code:"SV",name:"السلفادور"},{code:"EE",name:"إستونيا"},
-      {code:"ET",name:"إثيوبيا"},{code:"FJ",name:"فيجي"},{code:"FI",name:"فنلندا"},{code:"FR",name:"فرنسا"},{code:"GE",name:"جورجيا"},
-      {code:"DE",name:"ألمانيا"},{code:"GH",name:"غانا"},{code:"GR",name:"اليونان"},{code:"GT",name:"غواتيمالا"},{code:"HN",name:"هندوراس"},
-      {code:"HU",name:"المجر"},{code:"IS",name:"أيسلندا"},{code:"IN",name:"الهند"},{code:"ID",name:"إندونيسيا"},{code:"IR",name:"إيران"},
-      {code:"IQ",name:"العراق"},{code:"IE",name:"أيرلندا"},{code:"PS",name:"فلسطين"},{code:"IT",name:"إيطاليا"},{code:"JP",name:"اليابان"},
-      {code:"JO",name:"الأردن"},{code:"KZ",name:"كازاخستان"},{code:"KE",name:"كينيا"},{code:"KR",name:"كوريا الجنوبية"},{code:"KW",name:"الكويت"},
-      {code:"KG",name:"قيرغيزستان"},{code:"LA",name:"لاوس"},{code:"LV",name:"لاتفيا"},{code:"LB",name:"لبنان"},{code:"LT",name:"ليتوانيا"},
-      {code:"LU",name:"لوكسمبورغ"},{code:"MY",name:"ماليزيا"},{code:"MV",name:"جزر المالديف"},{code:"MT",name:"مالطا"},{code:"MX",name:"المكسيك"},
-      {code:"MD",name:"مولدوفا"},{code:"MC",name:"موناكو"},{code:"MN",name:"منغوليا"},{code:"ME",name:"الجبل الأسود"},{code:"MA",name:"المغرب"},
-      {code:"MZ",name:"موزمبيق"},{code:"MM",name:"ميانمار"},{code:"NA",name:"ناميبيا"},{code:"NP",name:"نيبال"},{code:"NL",name:"هولندا"},
-      {code:"NZ",name:"نيوزيلندا"},{code:"NI",name:"نيكاراغوا"},{code:"NG",name:"نيجيريا"},{code:"NO",name:"النرويج"},{code:"OM",name:"عُمان"},
-      {code:"PK",name:"باكستان"},{code:"PA",name:"بنما"},{code:"PG",name:"بابوا غينيا الجديدة"},{code:"PY",name:"باراغواي"},{code:"PE",name:"بيرو"},
-      {code:"PH",name:"الفلبين"},{code:"PL",name:"بولندا"},{code:"PT",name:"البرتغال"},{code:"QA",name:"قطر"},{code:"RO",name:"رومانيا"},
-      {code:"RU",name:"روسيا"},{code:"RW",name:"رواندا"},{code:"SA",name:"المملكة العربية السعودية"},{code:"SN",name:"السنغال"},{code:"RS",name:"صربيا"},
-      {code:"SC",name:"سيشل"},{code:"SL",name:"سيراليون"},{code:"SG",name:"سنغافورة"},{code:"SK",name:"سلوفاكيا"},{code:"SI",name:"سلوفينيا"},
-      {code:"SB",name:"جزر سليمان"},{code:"SO",name:"الصومال"},{code:"ZA",name:"جنوب أفريقيا"},{code:"ES",name:"إسبانيا"},{code:"LK",name:"سريلانكا"},
-      {code:"SD",name:"السودان"},{code:"SR",name:"سورينام"},{code:"SE",name:"السويد"},{code:"CH",name:"سويسرا"},{code:"SY",name:"سوريا"},
-      {code:"TW",name:"تايوان"},{code:"TJ",name:"طاجيكستان"},{code:"TZ",name:"تنزانيا"},{code:"TH",name:"تايلاند"},{code:"TL",name:"تيمور الشرقية"},
-      {code:"TG",name:"توغو"},{code:"TO",name:"تونغا"},{code:"TT",name:"ترينيداد وتوباغو"},{code:"TN",name:"تونس"},{code:"TR",name:"تركيا"},
-      {code:"TM",name:"تركمانستان"},{code:"UG",name:"أوغندا"},{code:"UA",name:"أوكرانيا"},{code:"AE",name:"الإمارات العربية المتحدة"},{code:"GB",name:"المملكة المتحدة"},
-      {code:"US",name:"الولايات المتحدة"},{code:"UY",name:"أوروغواي"},{code:"UZ",name:"أوزبكستان"},{code:"VU",name:"فانواتو"},{code:"VA",name:"الفاتيكان"},
-      {code:"VE",name:"فنزويلا"},{code:"VN",name:"فيتنام"},{code:"YE",name:"اليمن"},{code:"ZM",name:"زامبيا"},{code:"ZW",name:"زيمبابوي"}
-    ];
-    function populateFlagGrid(){
-      const flagGrid = document.getElementById("flagGrid");
-      flagGrid.innerHTML = "";
-      countries.forEach(country => {
-        const flagDiv = document.createElement("div");
-        flagDiv.className = "flag-item";
-        flagDiv.setAttribute("data-code", country.code);
-        flagDiv.setAttribute("data-name", country.name);
-        flagDiv.onclick = () => selectCountry(country);
-        flagDiv.innerHTML = `<span class="flag-icon flag-icon-${country.code.toLowerCase()}" style="font-size:48px;"></span>
-                             <div class="country-name">${country.name}</div>`;
-        flagGrid.appendChild(flagDiv);
-      });
-    }
-    populateFlagGrid();
-    function openModal(){
-      document.getElementById("countryModal").style.display = "flex";
-      document.getElementById("modalError").textContent = "";
-    }
-    function closeModal(){
-      document.getElementById("countryModal").style.display = "none";
-    }
-    async function selectCountry(country){
-      document.getElementById("modalError").textContent = "";
-      try{
-        const docSnap = await db.collection("lockedCountries").doc(country.name).get();
-        if(docSnap.exists){
-          document.getElementById("modalError").textContent = "يا جحش يا حمار يا كلب يا اعمى هذه دولة ماخوذة خذ غيرها لا افطر عليك لو انت رئيسها سجل دخول مش تنشا حساب يا جحش";
-        } else {
-          document.getElementById("selectedCountryText").innerText = country.name;
-          document.getElementById("selectedFlag").className = "flag-icon flag-icon-" + country.code.toLowerCase();
-          closeModal();
-        }
-      } catch(e) {
-        console.error(e);
-      }
-    }
-    function showLogin(){
-      document.getElementById("signup-container").style.display = "none";
-      document.getElementById("login-container").style.display = "block";
-    }
-    function showSignUp(){
-      // إذا كان المستخدم أنشأ حساباً مسبقاً، لا نعرض له واجهة إنشاء الحساب
-      if(localStorage.getItem("hasAccount") === "true"){
-        document.getElementById("signup-container").style.display = "none";
-        document.getElementById("login-container").style.display = "block";
+    <!-- 3. Su-57 Felon -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRFxJKs3iWnUeJzkmSgklf3HsMBT4W7ZqyW_A&usqp=CAU" alt="Su-57 Felon" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">Su-57 Felon</h4>
+      <p class="text-gray-600 mb-1">السعر: 200,000,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 3900</p>
+      <p class="text-gray-600 mb-1">السرعة: 2.2 ماخ</p>
+      <p class="text-green-500 mb-4">الميزة: كشف الهجمات الجوية والبرية وتوازن عالي</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('Su-57 Felon', 200000000, 3900, 2.2)">شراء</button>
+    </div>
+
+    <!-- 4. Eurofighter Typhoon -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiPmqY8n7xOcwlbP6V2EwbI9rICvE2qZjYcQ&usqp=CAU" alt="Eurofighter Typhoon" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">Eurofighter Typhoon</h4>
+      <p class="text-gray-600 mb-1">السعر: 150,000,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 3300</p>
+      <p class="text-gray-600 mb-1">السرعة: 2.0 ماخ</p>
+      <p class="text-green-500 mb-4">الميزة: قدرة مناورة خطيرة بفضل خفة وزنه</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('Eurofighter Typhoon', 150000000, 3300, 2.0)">شراء</button>
+    </div>
+
+    <!-- 5. MiG-31 Foxhound -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRpbK2HcK5wZxTT4aO5QyKiwuh1x2CD9Q7qwA&usqp=CAU" alt="MiG-31 Foxhound" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">MiG-31 Foxhound</h4>
+      <p class="text-gray-600 mb-1">السعر: 100,000,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 2100</p>
+      <p class="text-gray-600 mb-1">السرعة: 2.9 ماخ</p>
+      <p class="text-green-500 mb-4">الميزة: أسرع طائرة بالعالم</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('MiG-31 Foxhound', 100000000, 2100, 2.9)">شراء</button>
+    </div>
+
+    <!-- 6. F-22 Raptor -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsHphO_m9rZp3cxGkd3fQMB8K3ys7TnA1-hg&usqp=CAU" alt="F-22 Raptor" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">F-22 Raptor</h4>
+      <p class="text-gray-600 mb-1">السعر: 400,000,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 7000</p>
+      <p class="text-gray-600 mb-1">السرعة: 2.25 ماخ</p>
+      <p class="text-green-500 mb-4">الميزة: أقوى مقاتلة بالعالم مع رادار متطور</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('F-22 Raptor', 400000000, 7000, 2.25)">شراء</button>
+    </div>
+
+    <!-- 7. J-20 Mighty Dragon -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRHR9tB6xUXLLppkZP-G3WRc5HD9fJJgZ7gJw&usqp=CAU" alt="J-20 Mighty Dragon" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">J-20 Mighty Dragon</h4>
+      <p class="text-gray-600 mb-1">السعر: 200,000,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 3550</p>
+      <p class="text-gray-600 mb-1">السرعة: 2.0 ماخ</p>
+      <p class="text-green-500 mb-4">الميزة: مقاتلة شبحية متخفية بفضل الأنظمة الإلكترونية المتقدمة</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('J-20 Mighty Dragon', 200000000, 3550, 2.0)">شراء</button>
+    </div>
+
+    <!-- 8. Dassault Rafale -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRXXq0mZCwrTzKfzTK_MNVyF82zqtvOdwE3zw&usqp=CAU" alt="Dassault Rafale" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">Dassault Rafale</h4>
+      <p class="text-gray-600 mb-1">السعر: 130,000,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 2900</p>
+      <p class="text-gray-600 mb-1">السرعة: 1.8 ماخ</p>
+      <p class="text-green-500 mb-4">الميزة: توازن جيد بين الرادار والسرعة والقوة مع إمكانية حمل أسلحة ثقيلة</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('Dassault Rafale', 130000000, 2900, 1.8)">شراء</button>
+    </div>
+
+    <!-- 9. Boeing AH-64 Apache -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZ9k4LUGa_7k-VaSYlf9TCbnX3I0QyRqlzPQ&usqp=CAU" alt="Boeing AH-64 Apache" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">Boeing AH-64 Apache</h4>
+      <p class="text-gray-600 mb-1">السعر: 100,000,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 2800</p>
+      <p class="text-gray-600 mb-1">السرعة: 293 كم/ساعة</p>
+      <p class="text-green-500 mb-4">الميزة: هليكوبتر قتالية تحمل 50 جندي مع قدرات تدميرية وأنظمة تخفي متقدمة</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('Boeing AH-64 Apache', 100000000, 2800, 293)">شراء</button>
+    </div>
+
+    <!-- 10. Kamov Ka-52 Alligator -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTObnW3b5Qm0lI8oUEqI1BRs91h2n_jE5VUYw&usqp=CAU" alt="Kamov Ka-52 Alligator" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">Kamov Ka-52 Alligator</h4>
+      <p class="text-gray-600 mb-1">السعر: 88,000,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 2500</p>
+      <p class="text-gray-600 mb-1">السرعة: 300 كم/ساعة</p>
+      <p class="text-green-500 mb-4">الميزة: هليكوبتر قتالية تحمل 40 جندي وتعمل بكفاءة في جميع الأحوال الجوية</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('Kamov Ka-52 Alligator', 88000000, 2500, 300)">شراء</button>
+    </div>
+  </div>
+</section>
+        <!-- قسم المسيرات -->
+<h3 class="text-xl font-bold mt-8 mb-4">✿ مسيرات</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  <!-- 1. MQ-9 Reaper -->
+  <div class="bg-white p-6 rounded-lg shadow-md">
+    <img src="https://via.placeholder.com/150" alt="MQ-9 Reaper" class="w-full h-32 object-cover rounded mb-2">
+    <h4 class="text-lg font-bold mb-2">MQ-9 Reaper</h4>
+    <p class="text-gray-600 mb-1">السعر: 80,000,000$</p>
+    <p class="text-gray-600 mb-1">الضرر: 5,500</p>
+    <p class="text-gray-600 mb-1">السرعة: 482 كم/ساعة</p>
+    <p class="text-green-500 mb-4">الميزة: هذه مسيرة من اقوى مسيرات في عالم تستعمل مرة واحدة فقط مسببة ضرر كبير مع امكانية تجاوز بعض دفاعات</p>
+    <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('MQ-9 Reaper', 80000000, 5500, 482)">شراء</button>
+  </div>
+
+  <!-- 2. Bayrakter TB2 -->
+  <div class="bg-white p-6 rounded-lg shadow-md">
+    <img src="https://via.placeholder.com/150" alt="Bayrakter TB2" class="w-full h-32 object-cover rounded mb-2">
+    <h4 class="text-lg font-bold mb-2">Bayrakter TB2</h4>
+    <p class="text-gray-600 mb-1">السعر: 60,000,000$</p>
+    <p class="text-gray-600 mb-1">الضرر: 4,100</p>
+    <p class="text-gray-600 mb-1">السرعة: 222 كم/ساعة</p>
+    <p class="text-green-500 mb-4">الميزة: هذه مسيرة تعد من اكثر مسيرات فعالة في عالم من حيث توازنها مابين سرعة وضرر وتوفير كصناعة وتستعمل مرة واحدة</p>
+    <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('Bayrakter TB2', 60000000, 4100, 222)">شراء</button>
+  </div>
+
+  <!-- 3. Wing Loong II -->
+  <div class="bg-white p-6 rounded-lg shadow-md">
+    <img src="https://via.placeholder.com/150" alt="Wing Loong II" class="w-full h-32 object-cover rounded mb-2">
+    <h4 class="text-lg font-bold mb-2">Wing Loong II</h4>
+    <p class="text-gray-600 mb-1">السعر: 50,000,000$</p>
+    <p class="text-gray-600 mb-1">الضرر: 3,200</p>
+    <p class="text-gray-600 mb-1">السرعة: 370 كم/ساعة</p>
+    <p class="text-green-500 mb-4">الميزة: هذه مسيرة تستخدم بشكل واسع في مهام سريعة ومهام استطلاع كم انها مجهزة بصواريخ HJ-10 المضادة للدروع وتستعمل مرة واحدة</p>
+    <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('Wing Loong II', 50000000, 3200, 370)">شراء</button>
+  </div>
+
+  <!-- 4. Shahed 129 -->
+  <div class="bg-white p-6 rounded-lg shadow-md">
+    <img src="https://via.placeholder.com/150" alt="Shahed 129" class="w-full h-32 object-cover rounded mb-2">
+    <h4 class="text-lg font-bold mb-2">Shahed 129</h4>
+    <p class="text-gray-600 mb-1">السعر: 40,000,000$</p>
+    <p class="text-gray-600 mb-1">الضرر: 2,500</p>
+    <p class="text-gray-600 mb-1">السرعة: 240 كم/ساعة</p>
+    <p class="text-green-500 mb-4">الميزة: هذه مسيرة تتميز بقوتها بالاضافة الى سرعتها وقد تفضل استعمالها في مهام متوسطة كاستطلاع وهجوم وغيره وتستخدم مرة واحدة فقط</p>
+    <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('Shahed 129', 40000000, 2500, 240)">شراء</button>
+  </div>
+
+  <!-- 5. Heron TP -->
+  <div class="bg-white p-6 rounded-lg shadow-md">
+    <img src="https://via.placeholder.com/150" alt="Heron TP" class="w-full h-32 object-cover rounded mb-2">
+    <h4 class="text-lg font-bold mb-2">Heron TP</h4>
+    <p class="text-gray-600 mb-1">السعر: 33,000,000$</p>
+    <p class="text-gray-600 mb-1">الضرر: 2,000</p>
+    <p class="text-gray-600 mb-1">السرعة: 407 كم/ساعة</p>
+    <p class="text-green-500 mb-4">الميزة: مايميز هذه طائرة انها تستخدم بشكل واسع للاستطلاع بسبب سرعتها عالية بالاضافة لضررها فيجعلها خيار جيد لاغلب الدول</p>
+    <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('Heron TP', 33000000, 2000, 407)">شراء</button>
+  </div>
+</div>
+
+<!-- قسم الغواصات -->
+<h3 class="text-xl font-bold mt-8 mb-4">✿ غواصات</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  <!-- 1. غواصة نووية فئة Columbia -->
+  <div class="bg-white p-6 rounded-lg shadow-md">
+    <img src="https://via.placeholder.com/150" alt="غواصة نووية فئة Columbia" class="w-full h-32 object-cover rounded mb-2">
+    <h4 class="text-lg font-bold mb-2">غواصة نووية فئة Columbia</h4>
+    <p class="text-gray-600 mb-1">السعر: 4,000,000,000$</p>
+    <p class="text-gray-600 mb-1">الضرر: 30,000</p>
+    <p class="text-gray-600 mb-1">السرعة: 25 عقدة</p>
+    <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('غواصة نووية فئة Columbia', 4000000000, 30000, 25)">شراء</button>
+  </div>
+
+  <!-- 2. غواصة ديزل فئة Soryu -->
+  <div class="bg-white p-6 rounded-lg shadow-md">
+    <img src="https://via.placeholder.com/150" alt="غواصة ديزل فئة Soryu" class="w-full h-32 object-cover rounded mb-2">
+    <h4 class="text-lg font-bold mb-2">غواصة ديزل فئة Soryu</h4>
+    <p class="text-gray-600 mb-1">السعر: 2,200,000,000$</p>
+    <p class="text-gray-600 mb-1">الضرر: 20,000</p>
+    <p class="text-gray-600 mb-1">السرعة: 20 عقدة</p>
+    <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('غواصة ديزل فئة Soryu', 2200000000, 20000, 20)">شراء</button>
+  </div>
+
+  <!-- 3. غواصة هجومية فئة Barracuda -->
+  <div class="bg-white p-6 rounded-lg shadow-md">
+    <img src="https://via.placeholder.com/150" alt="غواصة هجومية فئة Barracuda" class="w-full h-32 object-cover rounded mb-2">
+    <h4 class="text-lg font-bold mb-2">غواصة هجومية فئة Barracuda</h4>
+    <p class="text-gray-600 mb-1">السعر: 3,500,000,000$</p>
+    <p class="text-gray-600 mb-1">الضرر: 28,000</p>
+    <p class="text-gray-600 mb-1">السرعة: 25 عقدة</p>
+    <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('غواصة هجومية فئة Barracuda', 3500000000, 28000, 25)">شراء</button>
+  </div>
+
+  <!-- 4. غواصة نووية فئة Borei-A -->
+  <div class="bg-white p-6 rounded-lg shadow-md">
+    <img src="https://via.placeholder.com/150" alt="غواصة نووية فئة Borei-A" class="w-full h-32 object-cover rounded mb-2">
+    <h4 class="text-lg font-bold mb-2">غواصة نووية فئة Borei-A</h4>
+    <p class="text-gray-600 mb-1">السعر: 4,500,000,000$</p>
+    <p class="text-gray-600 mb-1">الضرر: 35,000</p>
+    <p class="text-gray-600 mb-1">السرعة: 25 عقدة</p>
+    <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('غواصة نووية فئة Borei-A', 4500000000, 35000, 25)">شراء</button>
+  </div>
+
+  <!-- 5. غواصة نووية فئة Astute -->
+  <!-- 5. غواصة نووية فئة Astute -->
+  <div class="bg-white p-6 rounded-lg shadow-md">
+    <img src="https://via.placeholder.com/150" alt="غواصة نووية فئة Astute" class="w-full h-32 object-cover rounded mb-2">
+    <h4 class="text-lg font-bold mb-2">غواصة نووية فئة Astute</h4>
+    <p class="text-gray-600 mb-1">السعر: 3,000,000,000$</p>
+    <p class="text-gray-600 mb-1">الضرر: 22,000</p>
+    <p class="text-gray-600 mb-1">السرعة: 30 عقدة</p>
+    <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('غواصة نووية فئة Astute', 3000000000, 22000, 30)">شراء</button>
+  </div>
+</div>
+        <h3 class="text-xl font-bold mt-8 mb-4">✿ صواريخ باليستية</h3>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <!-- 1. صاروخ Minuteman III -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://via.placeholder.com/150" alt="صاروخ Minuteman III" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">صاروخ Minuteman III</h4>
+      <p class="text-gray-600 mb-1">السعر: 70,000,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 12,000</p>
+      <p class="text-gray-600 mb-1">المدى: 13,000 كم</p>
+      <p class="text-gray-600 mb-1">السرعة: 24 ماخ</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('صاروخ Minuteman III', 70000000, 12000, 24)">شراء</button>
+    </div>
+
+    <!-- 2. صاروخ DF-41 -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://via.placeholder.com/150" alt="صاروخ DF-41" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">صاروخ DF-41</h4>
+      <p class="text-gray-600 mb-1">السعر: 80,000,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 14,000</p>
+      <p class="text-gray-600 mb-1">المدى: 15,000 كم</p>
+      <p class="text-gray-600 mb-1">السرعة: 25 ماخ</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('صاروخ DF-41', 80000000, 14000, 25)">شراء</button>
+    </div>
+
+    <!-- 3. صاروخ RS-28 Sarmat -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://via.placeholder.com/150" alt="صاروخ RS-28 Sarmat" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">صاروخ RS-28 Sarmat</h4>
+      <p class="text-gray-600 mb-1">السعر: 170,000,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 18,000</p>
+      <p class="text-gray-600 mb-1">المدى: 18,000 كم</p>
+      <p class="text-gray-600 mb-1">السرعة: 20 ماخ</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('صاروخ RS-28 Sarmat', 170000000, 18000, 20)">شراء</button>
+    </div>
+
+    <!-- 4. صاروخ Agni-V -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://via.placeholder.com/150" alt="صاروخ Agni-V" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">صاروخ Agni-V</h4>
+      <p class="text-gray-600 mb-1">السعر: 90,000,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 15,000</p>
+      <p class="text-gray-600 mb-1">المدى: 5,000 كم</p>
+      <p class="text-gray-600 mb-1">السرعة: 24 ماخ</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('صاروخ Agni-V', 90000000, 15000, 24)">شراء</button>
+    </div>
+
+    <!-- 5. صاروخ Trident II -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://via.placeholder.com/150" alt="صاروخ Trident II" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">صاروخ Trident II</h4>
+      <p class="text-gray-600 mb-1">السعر: 220,000,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 22,000</p>
+      <p class="text-gray-600 mb-1">المدى: 12,000 كم</p>
+      <p class="text-gray-600 mb-1">السرعة: 24 ماخ</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('صاروخ Trident II', 220000000, 22000, 24)">شراء</button>
+    </div>
+  </div>
+
+<h3 class="text-xl font-bold mt-8 mb-4">✿ أنظمة دفاعية</h3>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <!-- 1. نظام Patriot PAC-3 -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://via.placeholder.com/150" alt="نظام Patriot PAC-3" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">نظام Patriot PAC-3</h4>
+      <p class="text-gray-600 mb-1">السعر: 25,000,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 0 (للدفاع فقط)</p>
+      <p class="text-gray-600 mb-1">التصدي: 1 صاروخ</p>
+      <p class="text-gray-600 mb-1">ملاحظة: قد تحتاج لاربعة او ثلاث منظومات لتصدي لطائرة ثقيلة واسقاطها او صاروخ ثقيل</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('نظام Patriot PAC-3', 25000000, 0, 0)">شراء</button>
+    </div>
+
+    <!-- 2. نظام S-400 Triumph -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://via.placeholder.com/150" alt="نظام S-400 Triumph" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">نظام S-400 Triumph</h4>
+      <p class="text-gray-600 mb-1">السعر: 60,000,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 0 (للدفاع فقط)</p>
+      <p class="text-gray-600 mb-1">التصدي: 2 صواريخ</p>
+      <p class="text-gray-600 mb-1">ملاحظة: قد تحتاج لمنظومتان دفاعيتان لتصدي لطائرة ثقيلة واسقاطها او صاروخ ثقيل</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('نظام S-400 Triumph', 60000000, 0, 0)">شراء</button>
+    </div>
+
+    <!-- 3. نظام Iron Dome -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="https://via.placeholder.com/150" alt="نظام Iron Dome" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">نظام Iron Dome</h4>
+      <p class="text-gray-600 mb-1">السعر: 55,000,000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 0 (للدفاع فقط)</p>
+      <p class="text-gray-600 mb-1">التصدي: 2 صواريخ</p>
+      <p class="text-gray-600 mb-1">ملاحظة: قد تحتاج لمنظومتان او ثلاث منظومات دفاعية لتصدي لطائرة ثقيلة واسقاطها او صاروخ ثقيل / لا يمكن نقلها</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('نظام Iron Dome', 55000000, 0, 0)">شراء</button>
+    </div>
+  </div>
+        
+        
+        <section class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-bold mb-4">الأصول المملوكة</h2>
+            <div id="ownedAssets" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </section>
+        
+
+<script>
+  // تعريف إعدادات Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyD2lR-GIwXkmjb2D_kYumcYgXrUIZP6ASo",
+    authDomain: "professor-school-website.firebaseapp.com",
+    projectId: "professor-school-website",
+    storageBucket: "professor-school-website.appspot.com",
+    messagingSenderId: "302841421596",
+    appId: "1:302841421596:web:1de713be7515ea22a3a4d9"
+  };
+
+  // تعريف مفتاح reCAPTCHA (Site Key)
+  const recaptchaSiteKey = "6LcqbfkqAAAAAEs1jWtOqpjxnORlPJ1KPg0gCD7T";
+
+  const app = firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const firestore = firebase.firestore();
+  const database = firebase.database();
+
+  auth.onAuthStateChanged((user) => {
+      if (!user) {
+          window.location.href = 'index.html';
       } else {
-        document.getElementById("login-container").style.display = "none";
-        document.getElementById("signup-container").style.display = "block";
-        populateFlagGrid();
+          firestore.collection('users').doc(user.uid).get().then((doc) => {
+              if (doc.exists) {
+                  const data = doc.data();
+                  const headName = data.headName;
+                  const country = data.country;
+                  const userInfoElement = document.getElementById('userInfo');
+                  userInfoElement.innerHTML = `
+                      <p>مرحبا سيدي ${headName}</p>
+                      <p>انت رئيس ${country}</p>
+                      <p>ايميلك ${user.email}</p>
+                  `;
+              }
+          });
+          loadUserData(user.uid);
       }
-    }
-    async function signUp(){
-      const countryName = document.getElementById("selectedCountryText").innerText;
-      const email = document.getElementById("signupEmail").value;
-      const headName = document.getElementById("headName").value;
-      const password = document.getElementById("signupPassword").value;
-      const errorDiv = document.getElementById("signupError");
-      errorDiv.textContent = "";
-      if(!countryName || countryName === "لم يتم الاختيار" || !email || !headName || !password){
-        errorDiv.textContent = "الرجاء ملء جميع الحقول واختيار دولة.";
-        return;
-      }
-      try{
-        const lockedDoc = await db.collection("lockedCountries").doc(countryName).get();
-        if(lockedDoc.exists){
-          errorDiv.textContent = "يا جحش يا حمار يا كلب يا اعمى هذه دولة ماخوذة خذ غيرها لا افطر عليك لو انت رئيسها سجل دخول مش تنشا حساب يا جحش";
-          return;
-        }
-      } catch(e) {
-        console.error(e);
-      }
-      try{
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        const user = userCredential.user;
-        await db.collection("users").doc(user.uid).set({
-          email: email,
-          headName: headName,
-          country: countryName
-        });
-        await db.collection("lockedCountries").doc(countryName).set({
-          locked: true,
-          userId: user.uid
-        });
-        // حفظ علامة إنشاء الحساب لمنع إعادة إنشاء الحساب
-        localStorage.setItem("hasAccount", "true");
-        alert("تم إنشاء الحساب بنجاح!");
-      } catch(e) {
-        errorDiv.textContent = e.message;
-      }
-    }
-    async function signIn(){
-      const email = document.getElementById("loginEmail").value;
-      const password = document.getElementById("loginPassword").value;
-      const errorDiv = document.getElementById("loginError");
-      errorDiv.textContent = "";
-      try{
-        await auth.signInWithEmailAndPassword(email, password);
-        window.location.href = "home.html";
-      } catch(e) {
-        errorDiv.textContent = e.message;
-      }
-    }
-    function filterCountries(){
-      const input = document.getElementById("searchInput").value.toLowerCase();
-      const flagItems = document.querySelectorAll(".flag-item");
-      flagItems.forEach(item => {
-        const countryName = item.querySelector(".country-name").innerText.toLowerCase();
-        item.style.display = countryName.includes(input) ? "block" : "none";
+  });
+
+  function loadUserData(userId) {
+      const userRef = database.ref('users/' + userId);
+      userRef.on('value', (snapshot) => {
+          const data = snapshot.val() || {
+              balance: 100000000,
+              assets: {},
+              dailyIncome: 0,
+              lastClaimTime: 0
+          };
+          window.userData = data;
+          checkAndUpdateDailyIncome();
+          updateUI();
       });
-    }
-  </script>
+  }
+
+  function checkAndUpdateDailyIncome() {
+    if (!auth.currentUser) return;
+    const userId = auth.currentUser.uid;
+    const userRef = database.ref('users/' + userId);
+
+    userRef.once('value').then(snapshot => {
+        const data = snapshot.val() || {
+            balance: 100000000,
+            dailyIncome: 0,
+            lastClaimDate: "1970-01-01"
+        };
+
+        const now = new Date();
+        const nowDateStr = now.toISOString().split('T')[0]; // التاريخ الحالي بصيغة YYYY-MM-DD
+        const lastClaimDate = data.lastClaimDate || "1970-01-01";
+
+        now.setHours(13, 0, 0, 0); // تحديد الساعة 13:00 بتوقيت النظام
+
+        if (nowDateStr > lastClaimDate && Date.now() >= now.getTime()) {
+            const newBalance = (data.balance || 0) + (data.dailyIncome || 0);
+            userRef.update({
+                balance: newBalance,
+                lastClaimDate: nowDateStr
+            }).then(() => {
+                console.log("تمت إضافة الدخل اليومي بنجاح!");
+                window.userData.balance = newBalance;
+                window.userData.lastClaimDate = nowDateStr;
+                updateUI();
+            });
+        }
+    });
+}
+
+  async function buyAsset(assetName, price, profit) {
+      if (!auth.currentUser) return;
+      const userId = auth.currentUser.uid;
+      const userRef = database.ref('users/' + userId);
+      if ((window.userData.balance || 0) >= price) {
+          const updates = {
+              balance: (window.userData.balance || 0) - price,
+              dailyIncome: (window.userData.dailyIncome || 0) + profit,
+              ['assets/' + assetName]: ((window.userData.assets && window.userData.assets[assetName]) || 0) + 1
+          };
+          await userRef.update(updates);
+      } else {
+          alert('رصيدك غير كافي لشراء هذا الأصل!');
+      }
+  }
+
+  function updateUI() {
+      const balance = (window.userData && window.userData.balance) || 0;
+      const dailyIncome = (window.userData && window.userData.dailyIncome) || 0;
+      document.getElementById('balance').textContent = `رصيدك الحالي: ${balance.toLocaleString()} $`;
+      document.getElementById('dailyIncome').textContent = `الدخل اليومي المتوقع: ${dailyIncome.toLocaleString()} $`;
+      const ownedAssetsDiv = document.getElementById('ownedAssets');
+      ownedAssetsDiv.innerHTML = '';
+      if (window.userData && window.userData.assets) {
+          for (const [assetName, count] of Object.entries(window.userData.assets)) {
+              const assetProfit = getAssetProfit(assetName);
+              ownedAssetsDiv.innerHTML += `
+                  <div class="bg-gray-50 p-4 rounded-lg">
+                      <h3 class="font-bold">${assetName.replace('_', ' ')}</h3>
+                      <p class="text-gray-600">الكمية: ${count}</p>
+                      <p class="text-green-500">ربح يومي: ${(assetProfit * count).toLocaleString()} $</p>
+                  </div>
+              `;
+          }
+      }
+  }
+
+  function getAssetProfit(assetName) {
+      const assets = {
+          'منجم_ذهب': 9000000,
+          'بئر_نفط': 12000000
+      };
+      return assets[assetName] || 0;
+  }
+</script>
 </body>
-</html>
+      </html>
