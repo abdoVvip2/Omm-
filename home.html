@@ -31,10 +31,10 @@
   <button class="ai-button" onclick="location.href='ai.html'">AI</button>
   
   <!-- زر منتدى أمم في المنتصف بلون أزرق -->
-  <button class="forum-button" onclick="location.href='pub.html'">التحويلات</button>
+  <button class="forum-button" onclick="location.href='pub.html'">منتدى امم</button>
   
   <!-- زر مهام أمم على اليمين بلون أحمر -->
-  <button class="tasks-button" onclick="location.href='tasks.html'">مهام أمم</button>
+  <button class="tasks-button" onclick="location.href='tasks.html'">تحويلات</button>
 
   <!-- صيغة زر AI -->
   <style>
@@ -83,7 +83,7 @@
       position: fixed;
       top: 5px;
       right: 10px;
-      background-color: #FF0000; /* أحمر */
+      background-color: #3B82F6; /* أحمر */
       color: white;
       border: none;
       border-radius: 8px;
@@ -215,6 +215,15 @@
             </div>
         </section>
 
+        <div class="bg-white p-6 rounded-lg shadow-md">
+      <img src="p/t14.png" alt="دبابة T-14 Armata" class="w-full h-32 object-cover rounded mb-2">
+      <h4 class="text-lg font-bold mb-2">جندي</h4>
+      <p class="text-gray-600 mb-1">السعر:5000$</p>
+      <p class="text-gray-600 mb-1">الضرر: 10</p>
+      <p class="text-gray-600 mb-1">السرعة: 10 كم/ساعة</p>
+      <p class="text-green-500 mb-4">الميزة: جندي عادي يضحي للوطن</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="buyAsset('جندي', 5000, 10, 10)">شراء</button>
+        </div>
   <!-- ✿ دبابات -->
   <h3 class="text-xl font-bold mb-4">✿ دبابات</h3>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
